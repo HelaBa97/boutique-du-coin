@@ -1,24 +1,13 @@
-# ================================================================
-#  LE RELECTEUR · l'agent qui relit chaque Pull Request
-#  Fiche de poste : sur chaque PR, lire les changements, les juger
-#  selon CONVENTIONS.md, et poster le verdict en commentaire.
-#  Il ne peut RIEN modifier : lecture seule + droit de commenter.
-#  Prerequis : la cle GEMINI_API_KEY dans Settings > Secrets.
-#  A placer dans le repo : .github/workflows/relecteur.yml
-# ================================================================
-
 name: tests
 
-# Le declencheur : une Pull Request s'ouvre ou recoit du nouveau code.
 on:
   push:
     branches: [master]
   pull_request:
 
-# Les droits du robot : le minimum vital, comme au J8.
 permissions:
-  contents: read              # lire le code, c'est tout
-  pull-requests: write        # le droit de commenter, rien d'autre
+  contents: read
+  pull-requests: write
 
 jobs:
   tests:
@@ -27,10 +16,23 @@ jobs:
       - name: Recuperer le code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0      # tout l'historique, pour comparer avec master
+          fetch-depth: 0
 
       - name: Installer OpenCode
         run: curl -fsSL https://opencode.ai/install | bash
+
+      - name: Configurer l'auth Google
+        run: |
+          mkdir -p "$HOME/.local/share/opencode"
+          cat > "$HOME/.local/share/opencode/auth.json" << 'EOF'
+          {
+            "providers": {
+              "google": {
+                "apiKey": "${{ secrets.GEMINI_API_KEY }}"
+              }
+            }
+          }
+          EOF
 
       - name: Relire les changements et rendre le verdict
         env:
@@ -54,7 +56,7 @@ jobs:
             echo ""
             cat changements.diff
           } > mission.txt
-          timeout 120 $HOME/.opencode/bin/opencode run "$(cat mission.txt)" > verdict.md 2>&1 || true
+          $HOME/.opencode/bin/opencode run "$(cat mission.txt)" > verdict.md 2>&1 || true
           if [ ! -s verdict.md ]; then
             echo "Le relecteur n'a pas pu rendre son verdict. Verifier la cle GEMINI_API_KEY dans Settings > Secrets and variables > Actions." > verdict.md
           fi
