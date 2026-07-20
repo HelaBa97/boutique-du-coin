@@ -1,24 +1,13 @@
-# ================================================================
-#  LE RELECTEUR · l'agent qui relit chaque Pull Request
-#  Fiche de poste : sur chaque PR, lire les changements, les juger
-#  selon CONVENTIONS.md, et poster le verdict en commentaire.
-#  Il ne peut RIEN modifier : lecture seule + droit de commenter.
-#  Prerequis : la cle GEMINI_API_KEY dans Settings > Secrets.
-#  A placer dans le repo : .github/workflows/relecteur.yml
-# ================================================================
-
 name: tests
 
-# Le declencheur : une Pull Request s'ouvre ou recoit du nouveau code.
 on:
   push:
     branches: [master]
   pull_request:
 
-# Les droits du robot : le minimum vital, comme au J8.
 permissions:
-  contents: read              # lire le code, c'est tout
-  pull-requests: write        # le droit de commenter, rien d'autre
+  contents: read
+  pull-requests: write
 
 jobs:
   tests:
@@ -27,30 +16,48 @@ jobs:
       - name: Recuperer le code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0      # tout l'historique, pour comparer avec main
+          fetch-depth: 0
 
       - name: Installer OpenCode
         run: curl -fsSL https://opencode.ai/install | bash
+
+      - name: Configurer OpenCode
+        run: |
+          cat > opencode.json << 'EOF'
+          {
+            "$schema": "https://opencode.ai/config.json",
+            "model": "google/gemini-flash-latest",
+            "provider": {
+              "google": {
+                "options": {
+                  "apiKey": "{env:GEMINI_API_KEY}"
+                },
+                "models": {
+                  "gemini-flash-latest": {
+                    "name": "Gemini Flash (formation)"
+                  }
+                }
+              }
+            }
+          }
+          EOF
 
       - name: Relire les changements et rendre le verdict
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          git fetch origin main
-          git diff origin/main...HEAD > changements.diff
+          git fetch origin master
+          git diff origin/master...HEAD > changements.diff
           {
-            echo "Tu es le critique de la Boutique du Coin, le meme qu'hier."
-            echo "Lis d'abord le fichier CONVENTIONS.md du projet : c'est la loi."
-            echo "Puis juge UNIQUEMENT les changements ci-dessous (un diff git),"
-            echo "en francais, au format de verdict exige par les conventions."
-            echo "Tu ne corriges JAMAIS : tu juges, c'est tout."
+            echo "JUGE UNIQUEMENT LE DIFF CI-DESSOUS. NE LIS AUCUN FICHIER."
+            echo "Tu es le critique. Voici les regles :"
+            cat CONVENTIONS.md
             echo ""
-            echo "Les changements a juger :"
-            echo ""
+            echo "--- DIFF A JUGER (ne lis aucun fichier) ---"
             cat changements.diff
           } > mission.txt
-          $HOME/.opencode/bin/opencode run "$(cat mission.txt)" > verdict.md || true
+          $HOME/.opencode/bin/opencode run --auto "$(cat mission.txt)" > verdict.md 2>&1 || true
           if [ ! -s verdict.md ]; then
             echo "Le relecteur n'a pas pu rendre son verdict. Verifier la cle GEMINI_API_KEY dans Settings > Secrets and variables > Actions." > verdict.md
           fi
