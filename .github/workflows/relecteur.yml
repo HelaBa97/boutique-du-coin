@@ -40,8 +40,12 @@ jobs:
           git fetch origin master
           git diff origin/master...HEAD > changements.diff
           {
-            echo "Tu es le critique de la Boutique du Coin, le meme qu'hier."
-            echo "Lis d'abord le fichier CONVENTIONS.md du projet : c'est la loi."
+            echo "--- CONVENTIONS.md (regles du projet) ---"
+            cat CONVENTIONS.md
+            echo ""
+            echo "--- CHANGEMENTS A JUGER ---"
+            echo "Tu es le critique de la Boutique du Coin."
+            echo "Lis les regles ci-dessus (CONVENTIONS.md) : c'est la loi."
             echo "Puis juge UNIQUEMENT les changements ci-dessous (un diff git),"
             echo "en francais, au format de verdict exige par les conventions."
             echo "Tu ne corriges JAMAIS : tu juges, c'est tout."
@@ -50,7 +54,7 @@ jobs:
             echo ""
             cat changements.diff
           } > mission.txt
-          $HOME/.opencode/bin/opencode run --auto --model google/gemini-2.0-flash -f CONVENTIONS.md "$(cat mission.txt)" > verdict.md || true
+          $HOME/.opencode/bin/opencode run --auto --model google/gemini-2.5-flash "$(cat mission.txt)" > verdict.md || true
           if [ ! -s verdict.md ]; then
             echo "Le relecteur n'a pas pu rendre son verdict. Verifier la cle GEMINI_API_KEY dans Settings > Secrets and variables > Actions." > verdict.md
           fi
