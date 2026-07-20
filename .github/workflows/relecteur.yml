@@ -21,14 +21,22 @@ jobs:
       - name: Installer OpenCode
         run: curl -fsSL https://opencode.ai/install | bash
 
-      - name: Configurer l'auth Google
+      - name: Configurer OpenCode
         run: |
-          mkdir -p "$HOME/.local/share/opencode"
-          cat > "$HOME/.local/share/opencode/auth.json" << 'EOF'
+          cat > opencode.json << 'EOF'
           {
-            "providers": {
+            "$schema": "https://opencode.ai/config.json",
+            "model": "google/gemini-flash-latest",
+            "provider": {
               "google": {
-                "apiKey": "${{ secrets.GEMINI_API_KEY }}"
+                "options": {
+                  "apiKey": "{env:GEMINI_API_KEY}"
+                },
+                "models": {
+                  "gemini-flash-latest": {
+                    "name": "Gemini Flash (formation)"
+                  }
+                }
               }
             }
           }
@@ -56,7 +64,7 @@ jobs:
             echo ""
             cat changements.diff
           } > mission.txt
-          $HOME/.opencode/bin/opencode run -- "$(cat mission.txt)" > verdict.md 2>&1 || true
+          $HOME/.opencode/bin/opencode run "$(cat mission.txt)" > verdict.md 2>&1 || true
           if [ ! -s verdict.md ]; then
             echo "Le relecteur n'a pas pu rendre son verdict. Verifier la cle GEMINI_API_KEY dans Settings > Secrets and variables > Actions." > verdict.md
           fi
