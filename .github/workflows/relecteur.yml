@@ -50,7 +50,7 @@ jobs:
           git fetch origin master
           git diff origin/master...HEAD > changements.diff
           {
-            echo "--- CONVENTIONS.md (regles du projet) ---"
+            echo "DEBUT CONVENTIONS.md (regles du projet)"
             cat CONVENTIONS.md
             echo ""
             echo "--- CHANGEMENTS A JUGER ---"
