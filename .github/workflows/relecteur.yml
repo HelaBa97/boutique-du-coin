@@ -11,6 +11,8 @@ name: relecteur
 
 # Le declencheur : une Pull Request s'ouvre ou recoit du nouveau code.
 on:
+  push:
+    branches: [master]
   pull_request:
 
 # Les droits du robot : le minimum vital, comme au J8.
