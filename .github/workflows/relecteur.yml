@@ -50,7 +50,7 @@ jobs:
             echo ""
             cat changements.diff
           } > mission.txt
-          $HOME/.opencode/bin/opencode run "$(cat mission.txt)" > verdict.md || true
+          $HOME/.opencode/bin/opencode run --auto --model google/gemini-2.0-flash -f CONVENTIONS.md "$(cat mission.txt)" > verdict.md || true
           if [ ! -s verdict.md ]; then
             echo "Le relecteur n'a pas pu rendre son verdict. Verifier la cle GEMINI_API_KEY dans Settings > Secrets and variables > Actions." > verdict.md
           fi
