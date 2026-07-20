@@ -50,21 +50,14 @@ jobs:
           git fetch origin master
           git diff origin/master...HEAD > changements.diff
           {
-            echo "DEBUT CONVENTIONS.md (regles du projet)"
+            echo "JUGE UNIQUEMENT LE DIFF CI-DESSOUS. NE LIS AUCUN FICHIER."
+            echo "Tu es le critique. Voici les regles :"
             cat CONVENTIONS.md
             echo ""
-            echo "--- CHANGEMENTS A JUGER ---"
-            echo "Tu es le critique de la Boutique du Coin."
-            echo "Lis les regles ci-dessus (CONVENTIONS.md) : c'est la loi."
-            echo "Puis juge UNIQUEMENT les changements ci-dessous (un diff git),"
-            echo "en francais, au format de verdict exige par les conventions."
-            echo "Tu ne corriges JAMAIS : tu juges, c'est tout."
-            echo ""
-            echo "Les changements a juger :"
-            echo ""
+            echo "--- DIFF A JUGER (ne lis aucun fichier) ---"
             cat changements.diff
           } > mission.txt
-          $HOME/.opencode/bin/opencode run --auto --print-logs "$(cat mission.txt)" > verdict.md 2>&1 || true
+          $HOME/.opencode/bin/opencode run --auto "$(cat mission.txt)" > verdict.md 2>&1 || true
           if [ ! -s verdict.md ]; then
             echo "Le relecteur n'a pas pu rendre son verdict. Verifier la cle GEMINI_API_KEY dans Settings > Secrets and variables > Actions." > verdict.md
           fi
