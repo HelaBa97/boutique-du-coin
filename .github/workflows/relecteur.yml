@@ -7,7 +7,7 @@
 #  A placer dans le repo : .github/workflows/relecteur.yml
 # ================================================================
 
-name: relecteur
+name: tests
 
 # Le declencheur : une Pull Request s'ouvre ou recoit du nouveau code.
 on:
@@ -21,7 +21,7 @@ permissions:
   pull-requests: write        # le droit de commenter, rien d'autre
 
 jobs:
-  revue:
+  tests:
     runs-on: ubuntu-latest
     steps:
       - name: Recuperer le code
